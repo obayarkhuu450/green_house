@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use Render's PORT or 3000 locally
 const bodyParser = require('body-parser');
 
 app.use(cors());
@@ -96,5 +96,5 @@ app.get('/api/alarms', (req, res) => {
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://locahlhost:${port}`);
+  console.log(`Server running at http://0.0.0.0:${port}`);
 });

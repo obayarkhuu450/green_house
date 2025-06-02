@@ -7,100 +7,56 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-        }
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        pre {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        body {
-            overflow-x: hidden;
-        }
-        #alarm3Message {
-            display: none;
-        }
+        .chart-container { position: relative; width: 100%; height: 300px; }
+        canvas { width: 100% !important; height: 100% !important; }
+        pre { max-height: 300px; overflow-y: auto; }
+        body { overflow-x: hidden; }
+        #alarm3Message { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Greenhouse Control</h1>
-
-        <!-- Alarm 3 Console Message -->
         <div id="alarm3Message" class="bg-red-600 text-white text-center py-4 rounded-lg mb-4">
             <p class="text-lg font-semibold">Warning: Door open for too long!</p>
         </div>
-
-        <!-- Error display -->
         <p id="error" class="text-red-600 text-center mb-4"></p>
-
-        <!-- Last 24 hours of averaged data -->
         <h3 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Last 24 Hours of Averaged Data (1-Minute)</h3>
         <pre id="sensorData" class="bg-white p-4 rounded-lg shadow-md mb-8">Loading sensor data...</pre>
-
-        <!-- Charts -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Inner Temperature Chart -->
             <div class="bg-white p-4 rounded-lg shadow-md">
                 <h4 class="text-xl font-semibold text-gray-700 mb-2 text-center">Inner Temperature vs Time</h4>
-                <div class="chart-container">
-                    <canvas id="temperatureChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="temperatureChart"></canvas></div>
             </div>
-
-            <!-- Humidity Chart -->
             <div class="bg-white p-4 rounded-lg shadow-md">
                 <h4 class="text-xl font-semibold text-gray-700 mb-2 text-center">Humidity vs Time</h4>
-                <div class="chart-container">
-                    <canvas id="humidityChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="humidityChart"></canvas></div>
             </div>
-
-            <!-- Outer Temperature Chart -->
             <div class="bg-white p-4 rounded-lg shadow-md">
                 <h4 class="text-xl font-semibold text-gray-700 mb-2 text-center">Outer Temperature vs Time</h4>
-                <div class="chart-container">
-                    <canvas id="tempOutChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="tempOutChart"></canvas></div>
             </div>
-
-            <!-- Door 1 Chart -->
             <div class="bg-white p-4 rounded-lg shadow-md">
                 <h4 class="text-xl font-semibold text-gray-700 mb-2 text-center">Door 1 State vs Time</h4>
-                <div class="chart-container">
-                    <canvas id="door1Chart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="door1Chart"></canvas></div>
             </div>
-
-            <!-- Door 2 Chart -->
             <div class="bg-white p-4 rounded-lg shadow-md">
                 <h4 class="text-xl font-semibold text-gray-700 mb-2 text-center">Door 2 State vs Time</h4>
-                <div class="chart-container">
-                    <canvas id="door2Chart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="door2Chart"></canvas></div>
             </div>
         </div>
-
-        <!-- Fan Control Buttons -->
         <h3 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Fan Control</h3>
         <div class="flex justify-center gap-4 mb-8">
-            <div class="flex flex-col items-center">
-                <p class="text-gray-600 mb-2">Fan 1</p>
-                <button onclick="toggleFan(1)" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Toggle Fan 1</button>
-            </div>
             <div class="flex flex-col items-center">
                 <p class="text-gray-600 mb-2">Fan 2</p>
                 <button onclick="toggleFan(2)" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Toggle Fan 2</button>
             </div>
+            <div class="flex flex-col items-center">
+                <p class="text-gray-600 mb-2">Local Temperature Control</p>
+                <button onclick="toggleLocalControl()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Toggle Local Control</button>
+                <p id="localControlStatus" class="text-gray-600 mt-2">Loading...</p>
+            </div>
         </div>
-
-        <!-- Live Data Section -->
         <h3 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Live Sensor Data and States</h3>
         <div class="bg-white p-6 rounded-lg shadow-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <p class="text-gray-600">Inner Temperature: <span id="liveTemperature" class="font-medium">Loading...</span> °C</p>
@@ -108,50 +64,44 @@
             <p class="text-gray-600">Outer Temperature: <span id="liveTempOut" class="font-medium">Loading...</span> °C</p>
             <p class="text-gray-600">Door 1 State: <span id="liveDoor1" class="font-medium">Loading...</span></p>
             <p class="text-gray-600">Door 2 State: <span id="liveDoor2" class="font-medium">Loading...</span></p>
-            <p class="text-gray-600">Fan 1 State: <span id="liveFan1" class="font-medium">Loading...</span></p>
             <p class="text-gray-600">Fan 2 State: <span id="liveFan2" class="font-medium">Loading...</span></p>
             <p class="text-gray-600">Alarm 1 (Overheat): <span id="liveAlarm1" class="font-medium">Loading...</span></p>
             <p class="text-gray-600">Alarm 2 (Too Cold): <span id="liveAlarm2" class="font-medium">Loading...</span></p>
+            <p class="text-gray-600">Local Control: <span id="liveLocalControl" class="font-medium">Loading...</span></p>
         </div>
     </div>
-
     <script>
         let temperatureChart, humidityChart, tempOutChart, door1Chart, door2Chart;
-
         function initializeCharts(sensorData) {
             console.log('Initializing charts with averaged data:', sensorData);
             if (!sensorData || !Array.isArray(sensorData) || sensorData.length === 0) {
-                document.getElementById('error').innerText = 'No averaged sensor data available to display charts.';
+                document.getElementById('error').textContent = 'No averaged sensor data available to display charts.';
                 return;
             }
-
             const temperatureData = sensorData.map(data => data.temperature !== undefined ? data.temperature : 0);
             const humidityData = sensorData.map(data => data.humidity !== undefined ? data.humidity : 0);
             const tempOutData = sensorData.map(data => data.temp_out !== undefined ? data.temp_out : 0);
             const door1Data = sensorData.map(data => data.door1 !== undefined ? (data.door1 ? 1 : 0) : 0);
             const door2Data = sensorData.map(data => data.door2 !== undefined ? (data.door2 ? 1 : 0) : 0);
             const labels = sensorData.map(data => {
-                try {
-                    return new Date(data.timestamp).toLocaleTimeString();
-                } catch (e) {
+                try { return new Date(data.timestamp).toLocaleTimeString(); } catch (e) {
                     console.error('Invalid timestamp:', data.timestamp);
                     return 'Invalid Time';
                 }
             });
-
-            const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
-            const humidityCtx = document.getElementById('humidityChart').getContext('2d');
-            const tempOutCtx = document.getElementById('tempOutChart').getContext('2d');
-            const door1Ctx = document.getElementById('door1Chart').getContext('2d');
-            const door2Ctx = document.getElementById('door2Chart').getContext('2d');
-
+            const ctxs = {
+                temperature: document.getElementById('temperatureChart').getContext('2d'),
+                humidity: document.getElementById('humidityChart').getContext('2d'),
+                tempOut: document.getElementById('tempOutChart').getContext('2d'),
+                door1: document.getElementById('door1Chart').getContext('2d'),
+                door2: document.getElementById('door2Chart').getContext('2d')
+            };
             if (temperatureChart) temperatureChart.destroy();
             if (humidityChart) humidityChart.destroy();
             if (tempOutChart) tempOutChart.destroy();
             if (door1Chart) door1Chart.destroy();
             if (door2Chart) door2Chart.destroy();
-
-            temperatureChart = new Chart(temperatureCtx, {
+            temperatureChart = new Chart(ctxs.temperature, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -174,8 +124,7 @@
                     }
                 }
             });
-
-            humidityChart = new Chart(humidityCtx, {
+            humidityChart = new Chart(ctxs.humidity, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -198,8 +147,7 @@
                     }
                 }
             });
-
-            tempOutChart = new Chart(tempOutCtx, {
+            tempOutChart = new Chart(ctxs.tempOut, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -222,8 +170,7 @@
                     }
                 }
             });
-
-            door1Chart = new Chart(door1Ctx, {
+            door1Chart = new Chart(ctxs.door1, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -246,8 +193,7 @@
                     }
                 }
             });
-
-            door2Chart = new Chart(door2Ctx, {
+            door2Chart = new Chart(ctxs.door2, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -271,7 +217,6 @@
                 }
             });
         }
-
         function updateLiveData(data) {
             console.log('Updating live data:', data);
             document.getElementById('liveTemperature').textContent = data.temperature !== undefined ? data.temperature.toFixed(2) : 'N/A';
@@ -279,32 +224,31 @@
             document.getElementById('liveTempOut').textContent = data.temp_out !== undefined ? data.temp_out.toFixed(2) : 'N/A';
             document.getElementById('liveDoor1').textContent = data.door1 !== undefined ? (data.door1 ? 'Closed' : 'Open') : 'N/A';
             document.getElementById('liveDoor2').textContent = data.door2 !== undefined ? (data.door2 ? 'Closed' : 'Open') : 'N/A';
-            document.getElementById('liveFan1').textContent = data.fan1 !== undefined ? (data.fan1 ? 'ON' : 'OFF') : 'N/A';
             document.getElementById('liveFan2').textContent = data.fan2 !== undefined ? (data.fan2 ? 'ON' : 'OFF') : 'N/A';
             document.getElementById('liveAlarm1').textContent = data.alarm1 !== undefined ? (data.alarm1 ? 'Active' : 'Inactive') : 'N/A';
             document.getElementById('liveAlarm2').textContent = data.alarm2 !== undefined ? (data.alarm2 ? 'Active' : 'Inactive') : 'N/A';
             document.getElementById('alarm3Message').style.display = data.alarm3 ? 'block' : 'none';
+            const localControlStatus = data.local_control_enabled !== undefined ? (data.local_control_enabled ? 'Enabled' : 'Disabled') : 'N/A';
+            document.getElementById('liveLocalControl').textContent = localControlStatus;
+            document.getElementById('localControlStatus').textContent = `Local Control: ${localControlStatus}`;
         }
-
-        function fetchFanStates() {
-            return fetch('http://10.3.131.242:3000/api/toggleFan?fan=status')
+        function fetchFanState() {
+            return fetch('/api/toggleFan?fan=status')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Fetched fan states:', data);
-                    document.getElementById('liveFan1').textContent = data.fan1 !== undefined ? (data.fan1 ? 'ON' : 'OFF') : 'N/A';
+                    console.log('Fetched fan state:', data);
                     document.getElementById('liveFan2').textContent = data.fan2 !== undefined ? (data.fan2 ? 'ON' : 'OFF') : 'N/A';
                 })
                 .catch(error => {
-                    console.error('Error fetching fan states:', error);
-                    document.getElementById('error').textContent = `Error fetching fan states: ${error.message}`;
+                    console.error('Error fetching fan state:', error);
+                    document.getElementById('error').textContent = `Error fetching fan state: ${error.message}`;
                 });
         }
-
         function fetchLiveData() {
-            fetch('http://10.3.131.242:3000/api/sensorData')
+            fetch('/api/sensorData')
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     return response.json();
@@ -321,9 +265,8 @@
                     document.getElementById('error').textContent = `Error fetching live data: ${error.message}`;
                 });
         }
-
         function fetchAveragedData() {
-            fetch('http://10.3.131.242:3000/api/sensorDataAveraged')
+            fetch('/api/sensorDataAveraged')
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     return response.json();
@@ -342,38 +285,49 @@
                     document.getElementById('error').textContent = `Error fetching averaged data: ${error.message}`;
                 });
         }
-
         function toggleFan(fan) {
-            console.log(`Toggling Fan ${fan}`);
-            fetch(`http://10.3.131.242:3000/api/toggleFan?fan=${fan}`)
+            console.log(`Trying to toggle Fan ${fan}`);
+            fetch(`/api/toggleFan?fan=${fan}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {
                     console.log(`Fan ${fan} state toggled:`, data);
-                    fetchFanStates(); // Update fan states only
+                    fetchFanState();
                 })
                 .catch(error => {
                     console.error('Error toggling fan:', error);
                     document.getElementById('error').textContent = `Error toggling fan: ${error.message}`;
                 });
         }
-
-        // Initial fetch
+        function toggleLocalControl() {
+            console.log('Toggling local control');
+            document.getElementById('localControlStatus').textContent = 'Local Control: Toggling...';
+            fetch('/api/toggleLocalControl')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Local control toggled:', data);
+                    const status = data.local_control_enabled ? 'Enabled' : 'Disabled';
+                    document.getElementById('localControlStatus').textContent = `Local Control: ${status}`;
+                    document.getElementById('liveLocalControl').textContent = status;
+                    fetchLiveData();
+                })
+                .catch(error => {
+                    console.error('Error toggling local control:', error);
+                    document.getElementById('error').textContent = `Error toggling local control: ${error.message}`;
+                    document.getElementById('localControlStatus').textContent = 'Local Control: Error';
+                });
+        }
         fetchLiveData();
         fetchAveragedData();
-        fetchFanStates();
-
-        // Periodic updates
-        setInterval(fetchLiveData, 2000); // Live data every 2 seconds
-        setInterval(fetchAveragedData, 60000); // Averaged data every 60 seconds
-        setInterval(fetchFanStates, 5000); // Fan states every 5 seconds
-
-        // Debugging scroll
-        window.addEventListener('scroll', () => {
-            console.log('Scroll position:', window.scrollY);
-        });
+        fetchFanState();
+        setInterval(fetchLiveData, 2000);
+        setInterval(fetchAveragedData, 60000);
+        setInterval(fetchFanState, 5000);
     </script>
 </body>
 </html>
